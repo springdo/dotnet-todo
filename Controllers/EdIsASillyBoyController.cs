@@ -6,15 +6,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace TodoApi.Controllers
 {
-    [Route("api/v1/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
-    public class EdIsASillyBoyHelperController : ControllerBase
+    public class EdIsASillyBoyController : ControllerBase
     {
         // GET api/values
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
-            return new string[] { "Hey Mak, ATTACK!", "🤓🥰🤓" };
+            return new string[] { "Ed is a Silly boy!", "🤓🥰🤓" };
         }
 
         // GET api/values/5
