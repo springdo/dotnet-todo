@@ -135,7 +135,7 @@ pipeline {
                 echo '### Create Linux Container Image from package ###'
                 sh  '''
                         oc project ${PIPELINES_NAMESPACE} # probs not needed
-                        oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"to\\":{\\"kind\\":\\"ImageStreamTag\\",\\"name\\":\\"${APP_NAME}:${JENKINS_TAG}\\"}}}}"
+                        oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"to\\":{\\"kind\\":\\"ImageStreamTag\\",\\"name\\":\\"${APP_NAME}:latest\\"}}}}"
                         oc start-build ${APP_NAME} --from-dir=package-contents/ --follow
                     '''
             }
@@ -154,11 +154,11 @@ pipeline {
                 echo '### tag image for namespace ###'
                 sh  '''
                     oc project ${PROJECT_NAMESPACE}
-                    oc tag ${PIPELINES_NAMESPACE}/${APP_NAME}:${JENKINS_TAG} ${PROJECT_NAMESPACE}/${APP_NAME}:${JENKINS_TAG}
+                    oc tag ${PIPELINES_NAMESPACE}/${APP_NAME}:latest ${PROJECT_NAMESPACE}/${APP_NAME}:latest
                     '''
                 echo '### set env vars and image for deployment ###'
                 sh '''
-                    oc set image dc/${APP_NAME} ${APP_NAME}=docker-registry.default.svc:5000/${PROJECT_NAMESPACE}/${APP_NAME}:${JENKINS_TAG}
+                    oc set image dc/${APP_NAME} ${APP_NAME}=docker-registry.default.svc:5000/${PROJECT_NAMESPACE}/${APP_NAME}:latest
                     oc rollout latest dc/${APP_NAME}
                 '''
                 echo '### Verify OCP Deployment ###'
