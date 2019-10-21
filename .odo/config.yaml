@@ -1,0 +1,14 @@
+kind: LocalConfig
+apiversion: odo.openshift.io/v1alpha1
+ComponentSettings:
+  Type: dotnet:2.2
+  SourceLocation: ./
+  SourceType: local
+  Ports:
+  - 8080/TCP
+  Application: app
+  Project: dotnet-funzies
+  Name: my-app
+  Url:
+  - Name: ed-is-smelly
+    Port: 8080
