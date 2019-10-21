@@ -1,3 +1,5 @@
+package-contents*
+
 *.swp
 *.*~
 project.lock.json
