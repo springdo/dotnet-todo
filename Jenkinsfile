@@ -50,8 +50,8 @@ pipeline {
                 
                 echo '### Add cluster configs ###'
                 sh '''
-                    oc process -f .openshift/buildconfig.yml NAME=todolist-dotnet BUILD_TAG=latest | oc apply -n ${PIPELINES_NAMESPACE} -f - 
-                    oc process -f .openshift/deploymentconfig.yml NAME=todolist-dotnet APP_TAG=latest DEPLOYER_USER=jenkins PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE} | oc apply -n ${PROJECT_NAMESPACE} -f - 
+                    oc process -f .openshift/buildconfig.yml NAME=${APP_NAME} BUILD_TAG=latest | oc apply -n ${PIPELINES_NAMESPACE} -f - 
+                    oc process -f .openshift/deploymentconfig.yml NAME=${APP_NAME} APP_TAG=latest DEPLOYER_USER=jenkins PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE} NAMESPACE=${PROJECT_NAMESPACE} | oc apply -n ${PROJECT_NAMESPACE} -f - 
                 '''
             }
         }
@@ -74,8 +74,8 @@ pipeline {
                 
                 echo '### Add cluster configs ###'
                 sh '''
-                    oc process -f .openshift/buildconfig.yml NAME=todolist-dotnet BUILD_TAG=latest | oc apply -n ${PIPELINES_NAMESPACE} -f - 
-                    oc process -f .openshift/deploymentconfig.yml NAME=todolist-dotnet APP_TAG=latest DEPLOYER_USER=jenkins PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE} NAMESPACE=${PROJECT_NAMESPACE} | oc apply -n ${PROJECT_NAMESPACE} -f - 
+                    oc process -f .openshift/buildconfig.yml NAME=${APP_NAME} BUILD_TAG=latest | oc apply -n ${PIPELINES_NAMESPACE} -f - 
+                    oc process -f .openshift/deploymentconfig.yml NAME=${APP_NAME} APP_TAG=latest DEPLOYER_USER=jenkins PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE} NAMESPACE=${PROJECT_NAMESPACE} | oc apply -n ${PROJECT_NAMESPACE} -f - 
                 '''
             }
         }
