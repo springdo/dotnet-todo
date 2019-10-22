@@ -1,0 +1,29 @@
+ci_cd_namespace: mod-ci-cd
+dev_namespace: mod-dev
+test_namespace: mod-test
+
+openshift_templates_raw: "https://raw.githubusercontent.com/redhat-cop/openshift-templates"
+openshift_templates_raw_version_tag: "v1.4.12"
+cop_quickstarts: "https://github.com/redhat-cop/containers-quickstarts.git"
+cop_quickstarts_raw: "https://raw.githubusercontent.com/redhat-cop/containers-quickstarts"
+cop_quickstarts_raw_version_tag: "v1.14"
+
+ci_cd:
+  NAMESPACE: "{{ ci_cd_namespace }}"
+  NAMESPACE_DISPLAY_NAME: "{{ ci_cd_namespace }}"
+  SECRET_NAME: "ci-cd-secret"
+
+dev:
+  NAMESPACE: "{{ dev_namespace }}"
+  NAMESPACE_DISPLAY_NAME: "{{ dev_namespace }}"
+
+test:
+  NAMESPACE: "{{ test_namespace }}"
+  NAMESPACE_DISPLAY_NAME: "{{ test_namespace }}"
+
+edit_role_binding_group:
+  GROUP: "labs-ci-cd-contributors"
+  ROLE: "{{ role | default('edit') }}"
+admin_role_binding_group:
+  GROUP: "ocp-devs"
+  ROLE: "admin"
