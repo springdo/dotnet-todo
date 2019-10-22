@@ -171,6 +171,64 @@ pipeline {
                     waitUnit: 'sec'
             }
         }
+
+        stage("smoke-test") {
+            agent {
+                node {
+                    label "master"
+                }
+            }
+            when {
+                expression { GIT_BRANCH ==~ /(.*master)/ }
+            }
+            steps {
+                echo '### Run smoke tests against BLUE or GREEN ###'
+                sh  '''
+                    export TEST_URL="http://${APP_NAME}-${PROJECT_NAMESPACE}.apps.forumeu.emea-1.rht-labs.com"
+                    curl ${TEST_URL}/api/values | grep -w "value1"
+                    if [ $? != 0 ]; then
+                        echo "TEST FAILED"
+                        exit -1
+                    fi
+                '''
+            }
+        }
+        
+        // stage("bg-deploy-prod") {
+        //     agent {
+        //         node {
+        //             label "master"
+        //         }
+        //     }
+        //     when {
+        //         expression { GIT_BRANCH ==~ /(.*master)/ }
+        //     }
+        //     steps {
+        //         echo '### Generate B/G Dep configs ###'
+        //         sh  '''
+        //             PROD_NAMESPACE=prod
+        //             oc process -f .openshift/deploymentconfig.yml NAME=${APP_NAME}-blue APP_TAG=latest DEPLOYER_USER=jenkins PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE} NAMESPACE=${PROD_NAMESPACE} | oc apply -n ${PROD_NAMESPACE} -f - 
+        //             oc process -f .openshift/deploymentconfig.yml NAME=${APP_NAME}-green APP_TAG=latest DEPLOYER_USER=jenkins PIPELINES_NAMESPACE=${PIPELINES_NAMESPACE} NAMESPACE=${PROD_NAMESPACE} | oc apply -n ${PROD_NAMESPACE} -f - 
+                    
+        //             // first time through the loop
+        //             oc expose service ${APP_NAME}-green -l name=live-route --name=${APP_NAME}
+        //             # TAG IMAGE FROM TEST FOR USE IN PROD
+        //             oc tag ${PROJECT_NAMESPACE}/${APP_NAME}:latest ${PROD_NAMESPACE}/${APP_NAME}:latest
+        //             oc set image dc/${APP_NAME} ${APP_NAME}=docker-registry.default.svc:5000/${PROJECT_NAMESPACE}/${APP_NAME}:latest
+        //             oc rollout latest dc/${APP_NAME}
+        //         '''
+
+        //         echo '### Run smoke tests against BLUE or GREEN ###'
+        //         sh  '''
+        //             export TEST_URL="http://${APP_NAME}-${PROJECT_NAMESPACE}.apps.forumeu.emea-1.rht-labs.com"
+        //             curl ${TEST_URL}/api/values | grep -w "value1"
+        //             if [ $? != 0 ]; then
+        //                 echo "TEST FAILED"
+        //                 exit -1
+        //             fi
+        //         '''
+        //     }
+        // }
     }
     post {
         always {
