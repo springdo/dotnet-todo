@@ -16,10 +16,10 @@ pipeline {
         GIT_SSL_NO_VERIFY = true
         GIT_CREDENTIALS = credentials('mod-ci-cd-jenkins-git-password')
         NEXUS_CREDS = credentials('mod-ci-cd-nexus-password')
+        NEXUS_REPO_NAME="labs-static"
 
         GITLAB_DOMAIN = ""
         GITLAB_PROJECT = ""
-        // SONAR_SCANNER_HOME = tool "sonar-scanner-tool"
     }
 
     // The options directive is for configuration that applies to the whole job.
@@ -95,8 +95,20 @@ pipeline {
                 sh 'dotnet publish -c Release /p:MicrosoftNETPlatformLibrary=Microsoft.NETCore.App'
 
                 echo '### Packaging App for Nexus ###'
+                sh '''
+                    curl -vv -X GET -u ${NEXUS_CREDS} -H 'Content-Type: application/json' http://${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/service/rest/v1/script/${NEXUS_REPO_NAME} | grep -e "${NEXUS_REPO_NAME}"
+                    rc=$?
+                    if [ $rc -gt 0 ]; then
+                        echo "Creating the repos in Nexus land"
+                        data='{"name":"'${NEXUS_REPO_NAME}'","type":"groovy","content":"repository.createRawHosted(\"'${NEXUS_REPO_NAME}'\")"}'
+                        curl -vv -X POST -u ${NEXUS_CREDS} -H 'Content-Type: application/json' -H 'Accept: application/json' -d $data http://${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/service/rest/v1/script
+                        curl -vv -X POST -u ${NEXUS_CREDS} -H 'Content-Type: text/plain' -H 'Accept: application/json' http://${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/service/rest/v1/script/${NEXUS_REPO_NAME}/run
+                    else
+                        echo "Repo is already there: -DskipCreation=true"
+                    fi
+                '''
                 sh 'mkdir -p package-contents && cp -vr bin Dockerfile package-contents && zip -r package-contents.zip package-contents'
-                sh 'curl -vvv -u ${NEXUS_CREDS} --upload-file package-contents.zip http://${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/repository/labs-static/com/redhat/fe/${JOB_NAME}.${BUILD_NUMBER}/package-contents.zip'
+                sh 'curl -vvv -u ${NEXUS_CREDS} --upload-file package-contents.zip http://${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/repository/${NEXUS_REPO_NAME}/com/redhat/fe/${JOB_NAME}.${BUILD_NUMBER}/package-contents.zip'
             }
             // Post can be used both on individual stages and for the entire build.
             post {
@@ -129,7 +141,7 @@ pipeline {
                 echo '### Get Binary from Nexus ###'
                 sh  '''
                         rm -rf package-contents*
-                        curl -v -f http://${NEXUS_CREDS}@${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/repository/labs-static/com/redhat/fe/${JENKINS_TAG}/package-contents.zip -o package-contents.zip
+                        curl -v -f http://${NEXUS_CREDS}@${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/repository/${NEXUS_REPO_NAME}/com/redhat/fe/${JENKINS_TAG}/package-contents.zip -o package-contents.zip
                         unzip package-contents.zip
                     '''
                 echo '### Create Linux Container Image from package ###'
