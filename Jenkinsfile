@@ -96,11 +96,11 @@ pipeline {
 
                 echo '### Packaging App for Nexus ###'
                 sh '''
-                    curl -vv -X GET -u ${NEXUS_CREDS} -H 'Content-Type: application/json' http://${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/service/rest/v1/script/${NEXUS_REPO_NAME} | grep -e "${NEXUS_REPO_NAME}"
-                    rc=$?
+                    curl -vv -X GET -u ${NEXUS_CREDS} -H 'Content-Type: application/json' http://${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/service/rest/v1/script/${NEXUS_REPO_NAME} | grep -e "${NEXUS_REPO_NAME}" || rc=$? 
+                    if [ -z "$rc" ];then rc=0;fi
                     if [ $rc -gt 0 ]; then
                         echo "Creating the repos in Nexus land"
-                        data='{"name":"'${NEXUS_REPO_NAME}'","type":"groovy","content":"repository.createRawHosted(\"'${NEXUS_REPO_NAME}'\")"}'
+                        data='{"name":"'${NEXUS_REPO_NAME}'","type":"groovy","content":"repository.createRawHosted(\\"'${NEXUS_REPO_NAME}'\\")"}'
                         curl -vv -X POST -u ${NEXUS_CREDS} -H 'Content-Type: application/json' -H 'Accept: application/json' -d $data http://${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/service/rest/v1/script
                         curl -vv -X POST -u ${NEXUS_CREDS} -H 'Content-Type: text/plain' -H 'Accept: application/json' http://${NEXUS_SERVICE_HOST}:${NEXUS_SERVICE_PORT}/service/rest/v1/script/${NEXUS_REPO_NAME}/run
                     else
@@ -148,6 +148,7 @@ pipeline {
                 sh  '''
                         oc project ${PIPELINES_NAMESPACE} # probs not needed
                         oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"to\\":{\\"kind\\":\\"ImageStreamTag\\",\\"name\\":\\"${APP_NAME}:latest\\"}}}}"
+                        oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"imageLabels\\":[{\\"name\\":\\"THINGY\\",\\"value\\":\\"MY_AWESOME_THINGY\\"},{\\"name\\":\\"OTHER_THINGY\\",\\"value\\":\\"MY_OTHER_AWESOME_THINGY\\"}]}}}"
                         oc start-build ${APP_NAME} --from-dir=package-contents/ --follow
                     '''
             }
