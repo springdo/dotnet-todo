@@ -197,8 +197,7 @@ pipeline {
             steps {
                 echo '### Run smoke tests against BLUE or GREEN ###'
                 sh  '''
-                    export TEST_URL="http://${APP_NAME}-${PROJECT_NAMESPACE}.apps.forumeu.emea-1.rht-labs.com"
-                    curl ${TEST_URL}/api/values | grep -w "value1"
+                    curl ${E2E_TEST_ROUTE}/api/values | grep -w "value1"
                     if [ $? != 0 ]; then
                         echo "TEST FAILED"
                         exit -1
